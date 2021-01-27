@@ -1,3 +1,5 @@
+import ItemTypes = Item.Types;
+
 /**
  * The Collection of Actor entities.
  *
@@ -97,10 +99,7 @@ declare class Actors extends EntityCollection<Actor> {
  * @example <caption>Retrieve an existing Actor</caption>
  * let actor = game.actors.get(actorId);
  */
-declare class Actor<
-  I extends Item = Item,
-  D extends Actor.Data = Actor.Data<any, Actor.OwnedItem<I>>
-> extends Entity<D> {
+declare class Actor<D extends Actor.Data = Actor.Data<any>> extends Entity<D> {
   constructor(data?: D, options?: Entity.CreateOptions);
 
   /**
@@ -112,7 +111,7 @@ declare class Actor<
    * Construct the Array of Item instances for the Actor
    * Items are prepared by the Actor.prepareEmbeddedEntities() method
    */
-  items: Collection<I>;
+  items: Collection<ItemTypes>;
 
   /**
    * ActiveEffects are prepared by the Actor.prepareEmbeddedEntities() method
@@ -145,7 +144,7 @@ declare class Actor<
    * Classify Owned Items by their type
    */
   get itemTypes(): {
-    [itemType: string]: I[];
+    [itemType: string]: ItemTypes[];
   };
 
   /**
@@ -188,7 +187,7 @@ declare class Actor<
    * @param items - The raw array of item objects
    * @returns The prepared owned items collection
    */
-  _prepareOwnedItems(items: Array<Actor.OwnedItem<I>>): Collection<I>;
+  _prepareOwnedItems(items: Array<Actor.OwnedItem<ItemTypes>>): Collection<ItemTypes>;
 
   /**
    * Prepare a Collection of ActiveEffect instances which belong to this Actor.
@@ -294,9 +293,9 @@ declare class Actor<
   /** @override */
   createEmbeddedEntity(
     embeddedName: string,
-    data: Optional<ActiveEffect | Actor.OwnedItem<I>>,
+    data: Optional<ActiveEffect | Actor.OwnedItem<ItemTypes>>,
     options?: any
-  ): Promise<ActiveEffect | Actor.OwnedItem<I>>;
+  ): Promise<ActiveEffect | Actor.OwnedItem<ItemTypes>>;
 
   /**
    * When Owned Items are created process each item and extract Active Effects to transfer to the Actor.
@@ -309,24 +308,30 @@ declare class Actor<
   /** @override */
   _onCreateEmbeddedEntity(
     embeddedName: string,
-    child: Actor.OwnedItem<I> | ActiveEffect,
+    child: Actor.OwnedItem<ItemTypes> | ActiveEffect,
     options: any,
     userId: string
   ): void;
 
   /** @override */
-  deleteEmbeddedEntity(embeddedName: string, data: string, options?: any): Promise<Actor.OwnedItem<I> | ActiveEffect>;
+  deleteEmbeddedEntity(
+    embeddedName: string,
+    data: string,
+    options?: any
+  ): Promise<Actor.OwnedItem<ItemTypes> | ActiveEffect>;
 
   /**
    * When Owned Items are created process each item and extract Active Effects to transfer to the Actor.
    * @param deleted - The array of deleted owned Item data
    */
-  _deleteItemActiveEffects(deleted: Actor.OwnedItem<I> | Array<Actor.OwnedItem<I>>): ActiveEffect | ActiveEffect[];
+  _deleteItemActiveEffects(
+    deleted: Actor.OwnedItem<ItemTypes> | Array<Actor.OwnedItem<ItemTypes>>
+  ): ActiveEffect | ActiveEffect[];
 
   /** @override */
   _onDeleteEmbeddedEntity(
     embeddedName: string,
-    child: Actor.OwnedItem<I> | ActiveEffect,
+    child: Actor.OwnedItem<ItemTypes> | ActiveEffect,
     options: any,
     userId: string
   ): void;
@@ -334,7 +339,7 @@ declare class Actor<
   /** @override */
   _onModifyEmbeddedEntity(
     embeddedName: string,
-    changes: Array<Actor.OwnedItem<I>> | ActiveEffect[],
+    changes: Array<Actor.OwnedItem<ItemTypes>> | ActiveEffect[],
     options: any,
     userId: string,
     context?: any
@@ -349,7 +354,7 @@ declare class Actor<
    * @param itemId - The owned Item id to retrieve
    * @returns An Item instance representing the Owned Item within the Actor entity
    */
-  getOwnedItem(itemId: string): I;
+  getOwnedItem(itemId: string): ItemTypes;
 
   /**
    * Create a new item owned by this Actor. This redirects its arguments to the createEmbeddedEntity method.
@@ -360,7 +365,7 @@ declare class Actor<
    * @param renderSheet - Render the Item sheet for the newly created item data
    * @returns A Promise resolving to the created Owned Item data
    */
-  createOwnedItem(itemData: Actor.OwnedItem<I>, options?: any): Promise<Actor.OwnedItem<I>>;
+  createOwnedItem(itemData: Actor.OwnedItem<ItemTypes>, options?: any): Promise<Actor.OwnedItem<ItemTypes>>;
 
   /**
    * Update an owned item using provided new data. This redirects its arguments to the updateEmbeddedEntity method.
@@ -370,7 +375,10 @@ declare class Actor<
    * @param options - Item update options
    * @returns A Promise resolving to the updated Owned Item data
    */
-  updateOwnedItem(itemData: Actor.OwnedItem<I>, options?: any): Promise<ActiveEffect | Actor.OwnedItem<I>>;
+  updateOwnedItem(
+    itemData: Actor.OwnedItem<ItemTypes>,
+    options?: any
+  ): Promise<ActiveEffect | Actor.OwnedItem<ItemTypes>>;
 
   /* -------------------------------------------- */
 
@@ -382,7 +390,7 @@ declare class Actor<
    * @param options - Item deletion options
    * @returns A Promise resolving to the deleted Owned Item data
    */
-  deleteOwnedItem(itemId: string, options?: any): Promise<ActiveEffect | Actor.OwnedItem<I>>;
+  deleteOwnedItem(itemId: string, options?: any): Promise<ActiveEffect | Actor.OwnedItem<ItemTypes>>;
 
   /* -------------------------------------------- */
   /*  DEPRECATED                                  */
@@ -404,18 +412,18 @@ declare namespace Actor {
   /**
    * Typing for the data.data field
    */
-  type DataData<T> = T extends Data<infer D, Item.Data> ? D : never;
+  type DataData<T> = T extends Data<infer D> ? D : never;
 
   /**
    * Owned item data stored in Actor.data
    */
   type OwnedItem<I> = I extends Item<infer D> ? D : never;
 
-  interface Data<D = any, OI extends Item.Data = Item.Data> extends Entity.Data {
+  export interface Data<D = any> extends Entity.Data {
     data: D;
     effects: ActiveEffect[];
     img: string;
-    items: OI[];
+    items: ItemTypes[];
     token: any; // TODO: Token.data
     type: string;
   }

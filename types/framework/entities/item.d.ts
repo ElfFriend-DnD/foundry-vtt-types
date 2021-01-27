@@ -155,4 +155,6 @@ declare namespace Item {
     img: string;
     type: string;
   }
+
+  export type Types = Item;
 }
